@@ -3,15 +3,32 @@ const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
     try {
-        const user = new User(req.body);
+        const { name, email, password, role } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: "Email already registered" });
+        }
+
+        const user = new User({ name, email, password, role });
         await user.save();
-        const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET || 'secret_key');
-        res.status(201).send({ user, token });
-    } catch (e) {
-        res.status(400).send(e);
+
+        const token = jwt.sign(
+            { _id: user._id.toString() },
+            process.env.JWT_SECRET || "secret_key"
+        );
+
+        res.status(201).json({ user, token });
+
+    } catch (error) {
+        console.error("REGISTER ERROR:", error);
+        res.status(500).json({ error: error.message });
     }
 };
-
 exports.login = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email });

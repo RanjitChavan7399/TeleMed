@@ -5,9 +5,9 @@ const caseSchema = new mongoose.Schema({
     doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     description: { type: String, required: true },
     status: { type: String, enum: ['Pending', 'Reviewed', 'Closed'], default: 'Pending' },
-    patientFile: { type: String }, // Path to uploaded file
+    patientFileUrl: { type: String },
     doctorResponse: { type: String },
-    prescriptionFile: { type: String }, // Path to doctor's prescription
+    prescriptionFileUrl: { type: String },
     uploadDate: { type: Date, default: Date.now },
     closedDate: { type: Date },
     lifecycleLog: [{ action: String, timestamp: { type: Date, default: Date.now } }]

@@ -2,7 +2,6 @@ const API_URL = '/api';
 let currentUser = JSON.parse(localStorage.getItem('user'));
 let token = localStorage.getItem('token');
 
-// Navigation
 function showSection(sectionId) {
     document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
     const target = document.getElementById(sectionId);
@@ -42,7 +41,6 @@ function showDashboard() {
     }
 }
 
-// Auth
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
@@ -116,7 +114,6 @@ function logout() {
     showSection('landing');
 }
 
-// Patient Actions
 document.getElementById('caseForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
@@ -170,7 +167,6 @@ async function loadPatientCases() {
     } catch (e) { console.error(e); }
 }
 
-// Doctor Actions
 async function loadDoctorCases() {
     try {
         const res = await fetch(`${API_URL}/cases`, {
@@ -189,13 +185,17 @@ async function loadDoctorCases() {
             <tr>
                 <td style="font-weight: 600;">${c.patient.name}</td>
                 <td>${c.description}</td>
-                <td><a href="/${c.patientFile}" target="_blank" class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;">📄 View File</a></td>
-                <td>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="openResponseModal('${c._id}')">Respond</button>
-                        <button class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="closeCase('${c._id}')">Close</button>
-                    </div>
-                </td>
+		<td>
+		    ${c.patientFileUrl && c.patientFileUrl !== ""
+		     ? `<a href="${c.patientFileUrl}" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.7rem;font-size:0.8rem;">📄 View File</a>`
+ 		     : 'No File'}
+		</td>
+		<td>
+    		<div style="display: flex; gap: 0.5rem;">
+        		<button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="openResponseModal('${c._id}')">Respond</button>
+        		<button class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="closeCase('${c._id}')">Close</button>
+    		</div>		
+		</td>
             </tr>
         `).join('');
     } catch (e) { console.error(e); }
@@ -251,7 +251,6 @@ async function closeCase(caseId) {
     }
 }
 
-// Admin Actions
 async function loadAdminDashboard() {
     try {
         const statsRes = await fetch(`${API_URL}/cases/stats`, {
@@ -286,7 +285,6 @@ async function loadAdminDashboard() {
     } catch (e) { console.error(e); }
 }
 
-// Init
 updateNav();
 if (token) showDashboard();
 else showSection('landing');

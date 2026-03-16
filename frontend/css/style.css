@@ -32,7 +32,6 @@ body {
     line-height: 1.6;
 }
 
-/* Navigation */
 .navbar {
     background-color: var(--bg-card);
     border-bottom: 1px solid var(--border);
@@ -77,7 +76,6 @@ body {
     color: var(--accent);
 }
 
-/* Layout */
 .container {
     max-width: 1100px;
     margin: 2.5rem auto;
@@ -93,7 +91,6 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Cards */
 .card {
     background: var(--bg-card);
     border-radius: var(--radius);
@@ -109,7 +106,6 @@ body {
     font-weight: 600;
 }
 
-/* Buttons */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -140,7 +136,6 @@ body {
 }
 .btn-outline:hover { background-color: var(--bg-main); }
 
-/* Forms */
 .form-group { margin-bottom: 1.25rem; }
 .form-group label { 
     display: block; 
@@ -166,7 +161,6 @@ body {
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 }
 
-/* Tables */
 .table-container {
     overflow-x: auto;
     border-radius: var(--radius);
@@ -200,7 +194,6 @@ tr:hover td {
     background-color: #f8fafc;
 }
 
-/* Badges */
 .badge {
     padding: 0.25rem 0.6rem;
     border-radius: 6px;
@@ -213,7 +206,6 @@ tr:hover td {
 .badge-reviewed { background-color: #d1fae5; color: #065f46; }
 .badge-closed { background-color: #f1f5f9; color: #475569; }
 
-/* Dashboard Grid */
 .dashboard-grid {
     display: grid;
     grid-template-columns: 240px 1fr;
@@ -249,7 +241,6 @@ tr:hover td {
     color: var(--accent);
 }
 
-/* Hero Section */
 .hero {
     text-align: center;
     padding: 5rem 1rem;
@@ -271,12 +262,10 @@ tr:hover td {
     margin: 0 auto 2rem;
 }
 
-/* Utilities */
 .hidden { display: none !important; }
 .text-center { text-align: center; }
 .mt-4 { margin-top: 1rem; }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     inset: 0;

@@ -5,18 +5,20 @@ const path = require('path');
 exports.createCase = async (req, res) => {
     try {
         const newCase = new Case({
-            ...req.body,
             patient: req.user._id,
-            patientFile: req.file ? req.file.path : null
+            description: req.body.description,
+	    patientFileUrl: req.body.fileUrl,
+            status: "Pending"
         });
+
         await newCase.save();
-        console.log(`[LOG] New case created by patient: ${req.user.name}. File: ${newCase.patientFile}`);
-        res.status(201).send(newCase);
-    } catch (e) {
-        res.status(400).send(e);
+
+        res.status(201).json(newCase);
+    } catch (error) {
+        console.error("CREATE CASE ERROR:", error);
+        res.status(500).json({ error: error.message });
     }
 };
-
 exports.getCases = async (req, res) => {
     try {
         let query = {};
@@ -29,23 +31,39 @@ exports.getCases = async (req, res) => {
     }
 };
 
+const { deleteFileFromS3 } = require('../utils/s3Upload');
+
 exports.respondToCase = async (req, res) => {
     try {
-        const updates = {
-            doctor: req.user._id,
-            doctorResponse: req.body.response,
-            status: 'Reviewed',
-            prescriptionFile: req.file ? req.file.path : null
-        };
-        const updatedCase = await Case.findOneAndUpdate(
-            { _id: req.params.id },
-            updates,
-            { new: true }
-        );
+        const caseData = await Case.findById(req.params.id);
+
+        if (!caseData) {
+            return res.status(404).json({ error: "Case not found" });
+        }
+
+        // 🔹 Delete old patient file from S3
+	if (caseData.patientFileUrl) {
+	    await deleteFileFromS3(caseData.patientFileUrl);
+	}
+        // 🔹 Update case
+        caseData.doctor = req.user._id;
+        caseData.doctorResponse = req.body.response;
+        caseData.status = "Reviewed";
+
+        // Save prescription S3 URL (already added in route)
+        if (req.body.prescriptionFileUrl) {
+            caseData.prescriptionFileUrl = req.body.prescriptionFileUrl;
+        }
+
+        await caseData.save();
+
         console.log(`[LOG] Doctor ${req.user.name} responded to case ${req.params.id}`);
-        res.send(updatedCase);
-    } catch (e) {
-        res.status(400).send(e);
+
+        res.json(caseData);
+
+    } catch (error) {
+        console.error("RESPOND ERROR:", error);
+        res.status(500).json({ error: error.message });
     }
 };
 
