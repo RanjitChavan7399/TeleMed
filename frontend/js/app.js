@@ -151,7 +151,11 @@ async function loadPatientCases() {
         const cases = await res.json();
         const tbody = document.querySelector('#patientCasesTable tbody');
         if (cases.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding: 2rem; color: var(--text-muted);">No consultations found.</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="4" style="padding: 0; border: none; background: transparent; text-align: center;"><div class="empty-state">
+                <i class="fa-solid fa-folder-open"></i>
+                <h4>No Consultations Found</h4>
+                <p>You haven't submitted any medical requests yet.</p>
+            </div></td></tr>`;
             return;
         }
         tbody.innerHTML = cases.map(c => `
@@ -177,7 +181,11 @@ async function loadDoctorCases() {
         const activeCases = cases.filter(c => c.status !== 'Closed');
         
         if (activeCases.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding: 2rem; color: var(--text-muted);">No pending cases to review.</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="4" style="padding: 0; border: none; background: transparent; text-align: center;"><div class="empty-state">
+                <i class="fa-solid fa-check-double" style="color: var(--success);"></i>
+                <h4>All Caught Up!</h4>
+                <p>There are no pending patient requests to review.</p>
+            </div></td></tr>`;
             return;
         }
 
@@ -268,7 +276,11 @@ async function loadAdminDashboard() {
         const tbody = document.querySelector('#adminCasesTable tbody');
         
         if (cases.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding: 2rem; color: var(--text-muted);">No system activity recorded.</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="4" style="padding: 0; border: none; background: transparent; text-align: center;"><div class="empty-state">
+                <i class="fa-solid fa-box-archive" style="color: var(--warning);"></i>
+                <h4>No System Activity</h4>
+                <p>No lifecycle events or cases have been generated yet.</p>
+            </div></td></tr>`;
             return;
         }
 
