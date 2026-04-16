@@ -1,4 +1,4 @@
-const API_URL = '/api';
+const API_URL = 'http://13.60.240.36:5000/api';
 let currentUser = JSON.parse(localStorage.getItem('user'));
 let token = localStorage.getItem('token');
 
