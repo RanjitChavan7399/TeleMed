@@ -8,6 +8,7 @@ const fs = require('fs');
 
 const authRoutes = require('./routes/authRoutes');
 const caseRoutes = require('./routes/caseRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +37,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/cases', caseRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 // Connect to MongoDB
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/telemedicine';

@@ -31,13 +31,13 @@ function showDashboard() {
     if (!currentUser) return showSection('login');
     if (currentUser.role === 'patient') {
         showSection('patientDashboard');
-        loadPatientCases();
+        switchPatientTab('cases');
     } else if (currentUser.role === 'doctor') {
         showSection('doctorDashboard');
-        loadDoctorCases();
+        switchDoctorTab('cases');
     } else if (currentUser.role === 'admin') {
         showSection('adminDashboard');
-        loadAdminDashboard();
+        switchAdminTab('cases');
     }
 }
 
@@ -300,3 +300,216 @@ async function loadAdminDashboard() {
 updateNav();
 if (token) showDashboard();
 else showSection('landing');
+
+// --- TAB SWITCHING LOGIC ---
+function switchPatientTab(tab) {
+    document.getElementById('patTabCases').classList.remove('active');
+    document.getElementById('patTabAppts').classList.remove('active');
+    document.getElementById('patCasesView').style.display = 'none';
+    document.getElementById('patApptsView').style.display = 'none';
+
+    if (tab === 'cases') {
+        document.getElementById('patTabCases').classList.add('active');
+        document.getElementById('patCasesView').style.display = 'flex';
+        loadPatientCases();
+    } else {
+        document.getElementById('patTabAppts').classList.add('active');
+        document.getElementById('patApptsView').style.display = 'flex';
+        loadPatientAppointments();
+        populateDoctorsDropdown();
+    }
+}
+
+function switchDoctorTab(tab) {
+    document.getElementById('docTabCases').classList.remove('active');
+    document.getElementById('docTabAppts').classList.remove('active');
+    document.getElementById('docCasesView').style.display = 'none';
+    document.getElementById('docApptsView').style.display = 'none';
+
+    if (tab === 'cases') {
+        document.getElementById('docTabCases').classList.add('active');
+        document.getElementById('docCasesView').style.display = 'block';
+        loadDoctorCases();
+    } else {
+        document.getElementById('docTabAppts').classList.add('active');
+        document.getElementById('docApptsView').style.display = 'block';
+        loadDoctorAppointments();
+    }
+}
+
+function switchAdminTab(tab) {
+    document.getElementById('adminTabCases').classList.remove('active');
+    document.getElementById('adminTabAppts').classList.remove('active');
+    document.getElementById('adminCasesView').style.display = 'none';
+    document.getElementById('adminApptsView').style.display = 'none';
+
+    if (tab === 'cases') {
+        document.getElementById('adminTabCases').classList.add('active');
+        document.getElementById('adminCasesView').style.display = 'block';
+        loadAdminDashboard();
+    } else {
+        document.getElementById('adminTabAppts').classList.add('active');
+        document.getElementById('adminApptsView').style.display = 'block';
+        loadAdminAppointments();
+    }
+}
+
+// --- APPOINTMENT LOGIC ---
+async function populateDoctorsDropdown() {
+    try {
+        const res = await fetch(`${API_URL}/auth/doctors`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const doctors = await res.json();
+        const select = document.getElementById('apptDoctor');
+        if (doctors.length === 0) {
+            select.innerHTML = '<option value="">No doctors available</option>';
+            return;
+        }
+        select.innerHTML = doctors.map(d => `<option value="${d._id}">Dr. ${d.name}</option>`).join('');
+    } catch (e) {
+        console.error('Error fetching doctors:', e);
+    }
+}
+
+if(document.getElementById('appointmentForm')){
+document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.disabled = true;
+
+    const data = {
+        doctor: document.getElementById('apptDoctor').value,
+        date: document.getElementById('apptDate').value,
+        time: document.getElementById('apptTime').value,
+        reason: document.getElementById('apptReason').value
+    };
+
+    try {
+        const res = await fetch(`${API_URL}/appointments`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            alert('Appointment booked successfully!');
+            document.getElementById('appointmentForm').reset();
+            loadPatientAppointments();
+        } else {
+            const err = await res.json();
+            alert(err.error || 'Failed to book appointment');
+        }
+    } catch (e) {
+        alert('Server connection error');
+    } finally {
+        btn.disabled = false;
+    }
+});
+}
+
+async function loadPatientAppointments() {
+    try {
+        const res = await fetch(`${API_URL}/appointments`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const appts = await res.json();
+        const tbody = document.querySelector('#patientApptsTable tbody');
+        if (appts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="padding: 1rem; text-align:center;"><div class="empty-state" style="padding: 1rem;"><i class="fa-solid fa-calendar-xmark" style="font-size: 2rem; color: var(--text-muted); margin-bottom:0.5rem; display:block;"></i>No appointments found.</div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = appts.map(a => `
+            <tr style="background: var(--bg-card); transition: all 0.3s ease;">
+                <td style="font-weight: 500;">Dr. ${a.doctor ? a.doctor.name : 'Unknown'}</td>
+                <td><i class="fa-regular fa-calendar" style="color: var(--primary); margin-right: 0.3rem;"></i> ${a.date}</td>
+                <td><i class="fa-regular fa-clock" style="color: var(--accent); margin-right: 0.3rem;"></i> ${a.time}</td>
+                <td>${a.reason}</td>
+                <td><span class="badge badge-${a.status === 'Completed' ? 'success' : (a.status === 'Cancelled' ? 'danger' : 'warning')}">${a.status}</span></td>
+            </tr>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function loadDoctorAppointments() {
+    try {
+        const res = await fetch(`${API_URL}/appointments`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const appts = await res.json();
+        const tbody = document.querySelector('#doctorApptsTable tbody');
+        if (appts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="padding: 1rem; text-align:center;"><div class="empty-state" style="padding: 1rem;"><i class="fa-solid fa-calendar-check" style="color: var(--success); font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>No upcoming appointments.</div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = appts.map(a => `
+            <tr>
+                <td style="font-weight: 600;">${a.patient ? a.patient.name : 'Unknown'}</td>
+                <td>${a.date}</td>
+                <td>${a.time}</td>
+                <td>${a.reason}</td>
+                <td><span class="badge badge-${a.status === 'Completed' ? 'success' : (a.status === 'Cancelled' ? 'danger' : 'warning')}">${a.status}</span></td>
+                <td>
+                    ${a.status === 'Scheduled' ? `
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-success" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a._id}', 'Completed')"><i class="fa-solid fa-check"></i> Complete</button>
+                        <button class="btn btn-danger" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a._id}', 'Cancelled')"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    </div>
+                    ` : '-'}
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function loadAdminAppointments() {
+    try {
+        const res = await fetch(`${API_URL}/appointments`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const appts = await res.json();
+        const tbody = document.querySelector('#adminApptsTable tbody');
+        if (appts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 1rem;">No appointments platform-wide.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = appts.map(a => `
+            <tr>
+                <td style="font-weight: 500;">${a.patient ? a.patient.name : 'Unknown'}</td>
+                <td>Dr. ${a.doctor ? a.doctor.name : 'Unknown'}</td>
+                <td>${a.date}</td>
+                <td>${a.time}</td>
+                <td><span class="badge badge-${a.status === 'Completed' ? 'success' : (a.status === 'Cancelled' ? 'danger' : 'warning')}">${a.status}</span></td>
+            </tr>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function updateApptStatus(id, status) {
+    if (!confirm(`Mark appointment as ${status}?`)) return;
+    try {
+        const res = await fetch(`${API_URL}/appointments/${id}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ status })
+        });
+        if (res.ok) {
+            loadDoctorAppointments();
+        } else {
+             alert('Failed to update status');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error updating status');
+    }
+}
+

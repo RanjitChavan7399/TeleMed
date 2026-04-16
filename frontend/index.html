@@ -145,42 +145,105 @@
                 <div class="sidebar">
                     <div class="card">
                         <ul class="sidebar-menu">
-                            <li><a href="#" class="active"><i class="fa-solid fa-list-check"></i> My Consultations</a></li>
+                            <li><a href="#" id="patTabCases" class="active" onclick="switchPatientTab('cases')"><i class="fa-solid fa-list-check"></i> My Consultations</a></li>
+                            <li><a href="#" id="patTabAppts" onclick="switchPatientTab('appts')"><i class="fa-solid fa-calendar-check"></i> Appointments</a></li>
                             <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="main-content" style="display: flex; flex-direction: column; gap: 2.5rem;">
-                    <div class="card">
-                        <h3><i class="fa-solid fa-notes-medical" style="color: var(--primary); margin-right: 0.5rem;"></i> Start New Consultation</h3>
-                        <form id="caseForm" enctype="multipart/form-data">
-                            <div class="form-group">
-                                <label for="caseDesc">Describe your symptoms or request</label>
-                                <textarea id="caseDesc" rows="4" placeholder="" required></textarea>
+                    
+                    <!-- Cases View -->
+                    <div id="patCasesView" style="display: flex; flex-direction: column; gap: 2.5rem;">
+                        <div class="card">
+                            <h3><i class="fa-solid fa-notes-medical" style="color: var(--primary); margin-right: 0.5rem;"></i> Start New Consultation</h3>
+                            <form id="caseForm" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <label for="caseDesc">Describe your symptoms or request</label>
+                                    <textarea id="caseDesc" rows="4" placeholder="" required></textarea>
+                                </div>
+                                <div class="form-group border-style" style="background: rgba(255,255,255,0.4); border: 2px dashed var(--border-dark); padding: 1.5rem; border-radius: var(--radius-sm); text-align: center;">
+                                    <label for="caseFile" style="font-size: 1.1rem; color: var(--text-main);"><i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary); font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i> Upload Medical Document (PDF/Image)</label>
+                                    <input type="file" id="caseFile" required style="border: none; background: transparent; padding: 0.5rem; font-family: 'Inter', sans-serif; cursor: pointer; display: block; margin: 0 auto; color: var(--text-muted);">
+                                </div>
+                                <button type="submit" class="btn btn-success" style="margin-top: 1rem;">
+                                    Submit Case to Doctor <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <h3><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent); margin-right: 0.5rem;"></i> Consultation History</h3>
+                            <div class="table-container">
+                                <table id="patientCasesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Status</th>
+                                            <th>Doctor Response</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
                             </div>
-                            <div class="form-group border-style" style="background: rgba(255,255,255,0.4); border: 2px dashed var(--border-dark); padding: 1.5rem; border-radius: var(--radius-sm); text-align: center;">
-                                <label for="caseFile" style="font-size: 1.1rem; color: var(--text-main);"><i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary); font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i> Upload Medical Document (PDF/Image)</label>
-                                <input type="file" id="caseFile" required style="border: none; background: transparent; padding: 0.5rem; font-family: 'Inter', sans-serif; cursor: pointer; display: block; margin: 0 auto; color: var(--text-muted);">
-                            </div>
-                            <button type="submit" class="btn btn-success" style="margin-top: 1rem;">
-                                Submit Case to Doctor <i class="fa-solid fa-paper-plane"></i>
-                            </button>
-                        </form>
+                        </div>
                     </div>
-                    <div class="card">
-                        <h3><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent); margin-right: 0.5rem;"></i> Consultation History</h3>
-                        <div class="table-container">
-                            <table id="patientCasesTable">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Description</th>
-                                        <th>Status</th>
-                                        <th>Doctor Response</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+
+                    <!-- Appointments View -->
+                    <div id="patApptsView" class="hidden" style="display: none; flex-direction: column; gap: 2.5rem;">
+                        <div class="card">
+                            <h3><i class="fa-solid fa-calendar-plus" style="color: var(--primary); margin-right: 0.5rem;"></i> Book an Appointment</h3>
+                            <form id="appointmentForm">
+                                <div class="form-group">
+                                    <label for="apptDoctor">Select Doctor</label>
+                                    <div class="input-container">
+                                        <i class="fa-solid fa-user-doctor"></i>
+                                        <select id="apptDoctor" required>
+                                            <option value="">Loading doctors...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 1rem;">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label for="apptDate">Date</label>
+                                        <div class="input-container">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <input type="date" id="apptDate" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label for="apptTime">Time</label>
+                                        <div class="input-container">
+                                            <i class="fa-regular fa-clock"></i>
+                                            <input type="time" id="apptTime" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="apptReason">Reason for Visit</label>
+                                    <textarea id="apptReason" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">
+                                    Confirm Booking <i class="fa-solid fa-check"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <h3><i class="fa-solid fa-calendar-days" style="color: var(--accent); margin-right: 0.5rem;"></i> My Appointments</h3>
+                            <div class="table-container">
+                                <table id="patientApptsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Doctor</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                            <th>Reason</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -193,13 +256,14 @@
                 <div class="sidebar">
                     <div class="card">
                         <ul class="sidebar-menu">
-                            <li><a href="#" class="active"><i class="fa-solid fa-inbox"></i> Pending Cases</a></li>
+                            <li><a href="#" id="docTabCases" class="active" onclick="switchDoctorTab('cases')"><i class="fa-solid fa-inbox"></i> Pending Cases</a></li>
+                            <li><a href="#" id="docTabAppts" onclick="switchDoctorTab('appts')"><i class="fa-solid fa-calendar-check"></i> Appointments</a></li>
                             <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="main-content">
-                    <div class="card">
+                    <div id="docCasesView" class="card">
                         <h3><i class="fa-solid fa-bed-pulse" style="color: var(--primary); margin-right: 0.5rem;"></i> Active Patient Requests</h3>
                         <div class="table-container">
                             <table id="doctorCasesTable">
@@ -208,6 +272,25 @@
                                         <th>Patient</th>
                                         <th>Description</th>
                                         <th>File</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="docApptsView" class="card hidden" style="display: none;">
+                        <h3><i class="fa-solid fa-calendar-days" style="color: var(--primary); margin-right: 0.5rem;"></i> Upcoming Appointments</h3>
+                        <div class="table-container">
+                            <table id="doctorApptsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Patient</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -225,36 +308,57 @@
                 <div class="sidebar">
                     <div class="card">
                         <ul class="sidebar-menu">
-                            <li><a href="#" class="active"><i class="fa-solid fa-chart-pie"></i> System Overview</a></li>
+                            <li><a href="#" id="adminTabCases" class="active" onclick="switchAdminTab('cases')"><i class="fa-solid fa-chart-pie"></i> System Overview</a></li>
+                            <li><a href="#" id="adminTabAppts" onclick="switchAdminTab('appts')"><i class="fa-solid fa-calendar-days"></i> All Appointments</a></li>
                             <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="main-content">
-                    <div class="stats-grid">
-                        <div class="card stat-card" style="padding: 1.5rem;">
-                            <p>TOTAL CASES</p>
-                            <h2 id="statTotal">0</h2>
+                    <div id="adminCasesView">
+                        <div class="stats-grid">
+                            <div class="card stat-card" style="padding: 1.5rem;">
+                                <p>TOTAL CASES</p>
+                                <h2 id="statTotal">0</h2>
+                            </div>
+                            <div class="card stat-card" style="padding: 1.5rem;">
+                                <p>PENDING</p>
+                                <h2 id="statPending" style="color: var(--warning);">0</h2>
+                            </div>
+                            <div class="card stat-card" style="padding: 1.5rem;">
+                                <p>CLOSED</p>
+                                <h2 id="statClosed" style="color: var(--success);">0</h2>
+                            </div>
                         </div>
-                        <div class="card stat-card" style="padding: 1.5rem;">
-                            <p>PENDING</p>
-                            <h2 id="statPending" style="color: var(--warning);">0</h2>
-                        </div>
-                        <div class="card stat-card" style="padding: 1.5rem;">
-                            <p>CLOSED</p>
-                            <h2 id="statClosed" style="color: var(--success);">0</h2>
+                        <div class="card">
+                            <h3><i class="fa-solid fa-server" style="color: var(--accent); margin-right: 0.5rem;"></i> System Activity Log</h3>
+                            <div class="table-container">
+                                <table id="adminCasesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Patient</th>
+                                            <th>Doctor</th>
+                                            <th>Status</th>
+                                            <th>Last Lifecycle Event</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                    <div class="card">
-                        <h3><i class="fa-solid fa-server" style="color: var(--accent); margin-right: 0.5rem;"></i> System Activity Log</h3>
+                    
+                    <div id="adminApptsView" class="card hidden" style="display: none;">
+                        <h3><i class="fa-solid fa-calendar-days" style="color: var(--primary); margin-right: 0.5rem;"></i> Platform Appointments</h3>
                         <div class="table-container">
-                            <table id="adminCasesTable">
+                            <table id="adminApptsTable">
                                 <thead>
                                     <tr>
                                         <th>Patient</th>
                                         <th>Doctor</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
                                         <th>Status</th>
-                                        <th>Last Lifecycle Event</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>

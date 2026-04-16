@@ -41,3 +41,12 @@ exports.login = async (req, res) => {
         res.status(500).send();
     }
 };
+
+exports.getDoctors = async (req, res) => {
+    try {
+        const doctors = await User.find({ role: 'doctor' }).select('name email');
+        res.status(200).json(doctors);
+    } catch (error) {
+         res.status(500).json({ error: error.message });
+    }
+};
