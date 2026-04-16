@@ -145,8 +145,8 @@
                 <div class="sidebar">
                     <div class="card">
                         <ul class="sidebar-menu">
-                            <li><a href="#" id="patTabCases" class="active" onclick="switchPatientTab('cases'); return false;"><i class="fa-solid fa-list-check"></i> My Consultations</a></li>
-                            <li><a href="#" id="patTabAppts" onclick="switchPatientTab('appts'); return false;"><i class="fa-solid fa-calendar-check"></i> Appointments</a></li>
+                            <li><a href="#" id="patTabCases" class="active" onclick="switchPatientTab('cases')"><i class="fa-solid fa-list-check"></i> My Consultations</a></li>
+                            <li><a href="#" id="patTabAppts" onclick="switchPatientTab('appts')"><i class="fa-solid fa-calendar-check"></i> Appointments</a></li>
                             <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
                         </ul>
                     </div>
@@ -190,7 +190,7 @@
                     </div>
 
                     <!-- Appointments View -->
-                    <div id="patApptsView" style="display: none; flex-direction: column; gap: 2.5rem;">
+                    <div id="patApptsView" class="hidden" style="display: none; flex-direction: column; gap: 2.5rem;">
                         <div class="card">
                             <h3><i class="fa-solid fa-calendar-plus" style="color: var(--primary); margin-right: 0.5rem;"></i> Book an Appointment</h3>
                             <form id="appointmentForm">
@@ -256,8 +256,8 @@
                 <div class="sidebar">
                     <div class="card">
                         <ul class="sidebar-menu">
-                            <li><a href="#" id="docTabCases" class="active" onclick="switchDoctorTab('cases'); return false;"><i class="fa-solid fa-inbox"></i> Pending Cases</a></li>
-                            <li><a href="#" id="docTabAppts" onclick="switchDoctorTab('appts'); return false;"><i class="fa-solid fa-calendar-check"></i> Appointments</a></li>
+                            <li><a href="#" id="docTabCases" class="active" onclick="switchDoctorTab('cases')"><i class="fa-solid fa-inbox"></i> Pending Cases</a></li>
+                            <li><a href="#" id="docTabAppts" onclick="switchDoctorTab('appts')"><i class="fa-solid fa-calendar-check"></i> Appointments</a></li>
                             <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
                         </ul>
                     </div>
@@ -280,7 +280,7 @@
                         </div>
                     </div>
                     
-                    <div id="docApptsView" class="card" style="display: none;">
+                    <div id="docApptsView" class="card hidden" style="display: none;">
                         <h3><i class="fa-solid fa-calendar-days" style="color: var(--primary); margin-right: 0.5rem;"></i> Upcoming Appointments</h3>
                         <div class="table-container">
                             <table id="doctorApptsTable">
@@ -308,8 +308,8 @@
                 <div class="sidebar">
                     <div class="card">
                         <ul class="sidebar-menu">
-                            <li><a href="#" id="adminTabCases" class="active" onclick="switchAdminTab('cases'); return false;"><i class="fa-solid fa-chart-pie"></i> System Overview</a></li>
-                            <li><a href="#" id="adminTabAppts" onclick="switchAdminTab('appts'); return false;"><i class="fa-solid fa-calendar-days"></i> All Appointments</a></li>
+                            <li><a href="#" id="adminTabCases" class="active" onclick="switchAdminTab('cases')"><i class="fa-solid fa-chart-pie"></i> System Overview</a></li>
+                            <li><a href="#" id="adminTabAppts" onclick="switchAdminTab('appts')"><i class="fa-solid fa-calendar-days"></i> All Appointments</a></li>
                             <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
                         </ul>
                     </div>
@@ -348,7 +348,7 @@
                         </div>
                     </div>
                     
-                    <div id="adminApptsView" class="card" style="display: none;">
+                    <div id="adminApptsView" class="card hidden" style="display: none;">
                         <h3><i class="fa-solid fa-calendar-days" style="color: var(--primary); margin-right: 0.5rem;"></i> Platform Appointments</h3>
                         <div class="table-container">
                             <table id="adminApptsTable">
