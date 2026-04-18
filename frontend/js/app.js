@@ -1,7 +1,9 @@
-const API_URL = 'http://13.60.240.36:5000/api';
+// Detect if running locally or on EC2
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+const API_URL = isLocal ? 'http://localhost:5000/api' : 'http://13.60.240.36:5000/api';
+
 let currentUser = JSON.parse(localStorage.getItem('user'));
 let token = localStorage.getItem('token');
-
 function showSection(sectionId) {
     document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
     const target = document.getElementById(sectionId);
@@ -361,29 +363,24 @@ function switchAdminTab(tab) {
 }
 
 // --- APPOINTMENT LOGIC ---
-async function populateDoctorsDropdown() {
-    try {
-        const res = await fetch("/api/users/doctors");
-        if (!res.ok) return;
-        const doctors = await res.json();
-        const dropdown = document.getElementById("doctorSelect");
-        
-        dropdown.innerHTML = "";
-        
-        if (doctors.length === 0) {
-            dropdown.innerHTML = '<option value="">No doctors available</option>';
-            return;
-        }
+function populateDoctorsDropdown() {
+    // If frontend and backend are on different URLs use full API URL
+    const fetchUrl = API_URL ? `${API_URL}/users/doctors` : "/api/users/doctors";
 
-        doctors.forEach(doc => {
-            const option = document.createElement("option");
-            option.value = doc._id;
-            option.textContent = doc.name;
-            dropdown.appendChild(option);
-        });
-    } catch (e) {
-        console.error('Error fetching doctors:', e);
-    }
+    fetch(fetchUrl)
+        .then(res => res.json())
+        .then(data => {
+            const dropdown = document.getElementById("doctorSelect");
+            dropdown.innerHTML = "";
+            
+            data.forEach(doc => {
+                const option = document.createElement("option");
+                option.value = doc._id;
+                option.textContent = doc.name;
+                dropdown.appendChild(option);
+            });
+        })
+        .catch(err => console.error("Error fetching doctors:", err));
 }
 
 if(document.getElementById('appointmentForm')){
