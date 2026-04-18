@@ -363,17 +363,24 @@ function switchAdminTab(tab) {
 // --- APPOINTMENT LOGIC ---
 async function populateDoctorsDropdown() {
     try {
-        const res = await fetch(`${API_URL}/auth/doctors`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await fetch("/api/users/doctors");
         if (!res.ok) return;
         const doctors = await res.json();
-        const select = document.getElementById('apptDoctor');
+        const dropdown = document.getElementById("doctorSelect");
+        
+        dropdown.innerHTML = "";
+        
         if (doctors.length === 0) {
-            select.innerHTML = '<option value="">No doctors available</option>';
+            dropdown.innerHTML = '<option value="">No doctors available</option>';
             return;
         }
-        select.innerHTML = doctors.map(d => `<option value="${d._id}">Dr. ${d.name}</option>`).join('');
+
+        doctors.forEach(doc => {
+            const option = document.createElement("option");
+            option.value = doc._id;
+            option.textContent = doc.name;
+            dropdown.appendChild(option);
+        });
     } catch (e) {
         console.error('Error fetching doctors:', e);
     }
@@ -386,7 +393,7 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
     btn.disabled = true;
 
     const data = {
-        doctor: document.getElementById('apptDoctor').value,
+        doctor: document.getElementById('doctorSelect').value,
         date: document.getElementById('apptDate').value,
         time: document.getElementById('apptTime').value,
         reason: document.getElementById('apptReason').value
