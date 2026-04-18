@@ -13,21 +13,27 @@ exports.createCase = async (req, res) => {
 
         await newCase.save();
 
-        res.status(201).json(newCase);
+        res.status(201).json({ success: true, data: newCase });
     } catch (error) {
         console.error("CREATE CASE ERROR:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ success: false, error: error.message });
     }
 };
+
 exports.getCases = async (req, res) => {
     try {
         let query = {};
-        if (req.user.role === 'patient') query.patient = req.user._id;
-        // Doctors and Admins can see all cases for now, or we could filter
+        if (req.user.role === 'patient') {
+            query.patient = req.user._id;
+        } else if (req.user.role === 'doctor') {
+            query.doctor = req.user._id;
+        }
+        
         const cases = await Case.find(query).populate('patient', 'name email').populate('doctor', 'name email');
-        res.send(cases);
-    } catch (e) {
-        res.status(500).send();
+        res.status(200).json({ success: true, data: cases });
+    } catch (error) {
+        console.error("GET CASES ERROR:", error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 };
 
@@ -38,19 +44,17 @@ exports.respondToCase = async (req, res) => {
         const caseData = await Case.findById(req.params.id);
 
         if (!caseData) {
-            return res.status(404).json({ error: "Case not found" });
+            return res.status(404).json({ success: false, error: "Case not found" });
         }
 
-        // 🔹 Delete old patient file from S3
-	if (caseData.patientFileUrl) {
+        if (caseData.patientFileUrl) {
 	    await deleteFileFromS3(caseData.patientFileUrl);
 	}
-        // 🔹 Update case
+
         caseData.doctor = req.user._id;
         caseData.doctorResponse = req.body.response;
         caseData.status = "Reviewed";
 
-        // Save prescription S3 URL (already added in route)
         if (req.body.prescriptionFileUrl) {
             caseData.prescriptionFileUrl = req.body.prescriptionFileUrl;
         }
@@ -59,24 +63,23 @@ exports.respondToCase = async (req, res) => {
 
         console.log(`[LOG] Doctor ${req.user.name} responded to case ${req.params.id}`);
 
-        res.json(caseData);
+        res.status(200).json({ success: true, data: caseData });
 
     } catch (error) {
         console.error("RESPOND ERROR:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ success: false, error: error.message });
     }
 };
 
 exports.closeCase = async (req, res) => {
     try {
         const targetCase = await Case.findById(req.params.id);
-        if (!targetCase) return res.status(404).send();
+        if (!targetCase) return res.status(404).json({ success: false, error: "Case not found" });
 
         targetCase.status = 'Closed';
         targetCase.closedDate = new Date();
         targetCase.lifecycleLog.push({ action: 'Case Closed' });
 
-        // Lifecycle Automation: Delete or Archive files
         const archiveDir = path.join(__dirname, '../../archive');
         if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir);
 
@@ -94,9 +97,10 @@ exports.closeCase = async (req, res) => {
         }
 
         await targetCase.save();
-        res.send(targetCase);
-    } catch (e) {
-        res.status(500).send(e);
+        res.status(200).json({ success: true, data: targetCase });
+    } catch (error) {
+        console.error("CLOSE CASE ERROR:", error);
+        res.status(500).json({ success: false, error: error.message });
     }
 };
 
@@ -105,8 +109,9 @@ exports.getStats = async (req, res) => {
         const totalCases = await Case.countDocuments();
         const closedCases = await Case.countDocuments({ status: 'Closed' });
         const pendingCases = await Case.countDocuments({ status: 'Pending' });
-        res.send({ totalCases, closedCases, pendingCases });
-    } catch (e) {
-        res.status(500).send();
+        res.status(200).json({ success: true, data: { totalCases, closedCases, pendingCases } });
+    } catch (error) {
+        console.error("GET STATS ERROR:", error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 };

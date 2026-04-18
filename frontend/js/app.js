@@ -59,8 +59,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
-        const data = await res.json();
-        if (data.token) {
+        const resData = await res.json();
+        if (resData.success && resData.data.token) {
+            const data = resData.data;
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             token = data.token;
@@ -68,7 +69,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             updateNav();
             showDashboard();
         } else {
-            alert(data.error || 'Login failed. Please check your credentials.');
+            alert(resData.error || 'Login failed. Please check your credentials.');
         }
     } catch (err) {
         alert('Error connecting to server. Please ensure the backend is running.');
@@ -94,12 +95,12 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, password, role })
         });
-        const data = await res.json();
-        if (res.ok) {
+        const resData = await res.json();
+        if (resData.success) {
             alert('Registration successful! You can now log in.');
             showSection('login');
         } else {
-            alert(data.error || 'Registration failed');
+            alert(resData.error || 'Registration failed');
         }
     } catch (err) {
         alert('Error connecting to server');
@@ -132,10 +133,13 @@ document.getElementById('caseForm').addEventListener('submit', async (e) => {
             headers: { 'Authorization': `Bearer ${token}` },
             body: formData
         });
-        if (res.ok) {
+        const resData = await res.json();
+        if (resData.success) {
             alert('Case submitted successfully! A doctor will review it soon.');
             document.getElementById('caseForm').reset();
             loadPatientCases();
+        } else {
+            alert(resData.error || 'Failed to submit case');
         }
     } catch (err) {
         alert('Error submitting case');
@@ -150,7 +154,9 @@ async function loadPatientCases() {
         const res = await fetch(`${API_URL}/cases`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const cases = await res.json();
+        const resData = await res.json();
+        if (!resData.success) { alert(resData.error || "Failed to load cases"); return; }
+        const cases = resData.data;
         const tbody = document.querySelector('#patientCasesTable tbody');
         if (cases.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" style="padding: 0; border: none; background: transparent; text-align: center;"><div class="empty-state">
@@ -178,7 +184,9 @@ async function loadDoctorCases() {
         const res = await fetch(`${API_URL}/cases`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const cases = await res.json();
+        const resData = await res.json();
+        if (!resData.success) { console.error(resData.error); return; }
+        const cases = resData.data;
         const tbody = document.querySelector('#doctorCasesTable tbody');
         const activeCases = cases.filter(c => c.status !== 'Closed');
         
@@ -235,10 +243,13 @@ document.getElementById('responseForm').addEventListener('submit', async (e) => 
             headers: { 'Authorization': `Bearer ${token}` },
             body: formData
         });
-        if (res.ok) {
+        const resData = await res.json();
+        if (resData.success) {
             alert('Response sent successfully!');
             closeModal();
             loadDoctorCases();
+        } else {
+            alert(resData.error || 'Failed to send response');
         }
     } catch (err) {
         alert('Error sending response');
@@ -252,9 +263,12 @@ async function closeCase(caseId) {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (res.ok) {
+        const resData = await res.json();
+        if (resData.success) {
             alert('Case closed and files archived.');
             loadDoctorCases();
+        } else {
+            alert(resData.error || 'Failed to close case');
         }
     } catch (err) {
         alert('Error closing case');
@@ -266,7 +280,9 @@ async function loadAdminDashboard() {
         const statsRes = await fetch(`${API_URL}/cases/stats`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const stats = await statsRes.json();
+        const statsResData = await statsRes.json();
+        if (!statsResData.success) return console.error(statsResData.error);
+        const stats = statsResData.data;
         document.getElementById('statTotal').innerText = stats.totalCases;
         document.getElementById('statPending').innerText = stats.pendingCases;
         document.getElementById('statClosed').innerText = stats.closedCases;
@@ -274,7 +290,9 @@ async function loadAdminDashboard() {
         const casesRes = await fetch(`${API_URL}/cases`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const cases = await casesRes.json();
+        const casesResData = await casesRes.json();
+        if (!casesResData.success) return console.error(casesResData.error);
+        const cases = casesResData.data;
         const tbody = document.querySelector('#adminCasesTable tbody');
         
         if (cases.length === 0) {
@@ -369,7 +387,9 @@ function populateDoctorsDropdown() {
 
     fetch(fetchUrl)
         .then(res => res.json())
-        .then(data => {
+        .then(resData => {
+            if (!resData.success) return console.error(resData.error);
+            const data = resData.data;
             const dropdown = document.getElementById("doctorSelect");
             dropdown.innerHTML = "";
             
@@ -389,8 +409,9 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
     const btn = e.target.querySelector('button');
     btn.disabled = true;
 
-    const data = {
-        doctor: document.getElementById('doctorSelect').value,
+    const payload = {
+        doctorId: document.getElementById('doctorSelect').value,
+        patientId: currentUser._id,
         date: document.getElementById('apptDate').value,
         time: document.getElementById('apptTime').value,
         reason: document.getElementById('apptReason').value
@@ -403,15 +424,15 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}` 
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
         });
-        if (res.ok) {
+        const resData = await res.json();
+        if (resData.success) {
             alert('Appointment booked successfully!');
             document.getElementById('appointmentForm').reset();
             loadPatientAppointments();
         } else {
-            const err = await res.json();
-            alert(err.error || 'Failed to book appointment');
+            alert(resData.error || 'Failed to book appointment');
         }
     } catch (e) {
         alert('Server connection error');
@@ -426,8 +447,9 @@ async function loadPatientAppointments() {
         const res = await fetch(`${API_URL}/appointments`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) return;
-        const appts = await res.json();
+        const resData = await res.json();
+        if (!resData.success) return;
+        const appts = resData.data;
         const tbody = document.querySelector('#patientApptsTable tbody');
         if (appts.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" style="padding: 1rem; text-align:center;"><div class="empty-state" style="padding: 1rem;"><i class="fa-solid fa-calendar-xmark" style="font-size: 2rem; color: var(--text-muted); margin-bottom:0.5rem; display:block;"></i>No appointments found.</div></td></tr>`;
@@ -450,8 +472,9 @@ async function loadDoctorAppointments() {
         const res = await fetch(`${API_URL}/appointments/doctor/${currentUser._id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) return;
-        const appts = await res.json();
+        const resData = await res.json();
+        if (!resData.success) return;
+        const appts = resData.data;
         const tbody = document.querySelector('#doctorApptsTable tbody');
         if (appts.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="padding: 1rem; text-align:center;"><div class="empty-state" style="padding: 1rem;"><i class="fa-solid fa-calendar-check" style="color: var(--success); font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>No upcoming appointments.</div></td></tr>`;
@@ -482,8 +505,9 @@ async function loadAdminAppointments() {
         const res = await fetch(`${API_URL}/appointments`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) return;
-        const appts = await res.json();
+        const resData = await res.json();
+        if (!resData.success) return;
+        const appts = resData.data;
         const tbody = document.querySelector('#adminApptsTable tbody');
         if (appts.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 1rem;">No appointments platform-wide.</td></tr>`;
@@ -506,8 +530,9 @@ async function loadAdminDoctors() {
         const res = await fetch(`${API_URL}/auth/all-doctors`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) return;
-        const doctors = await res.json();
+        const resData = await res.json();
+        if (!resData.success) return;
+        const doctors = resData.data;
         const tbody = document.querySelector('#adminDocsTable tbody');
         if (doctors.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 1rem;">No doctors registered.</td></tr>`;
@@ -533,10 +558,11 @@ async function approveDoctor(id) {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (res.ok) {
+        const resData = await res.json();
+        if (resData.success) {
             loadAdminDoctors();
         } else {
-            alert('Failed to approve doctor');
+            alert('Failed to approve doctor: ' + (resData.error || ''));
         }
     } catch (e) {
         console.error(e);
@@ -555,10 +581,11 @@ async function updateApptStatus(id, status) {
             },
             body: JSON.stringify({ status })
         });
-        if (res.ok) {
+        const resData = await res.json();
+        if (resData.success) {
             loadDoctorAppointments();
         } else {
-             alert('Failed to update status');
+             alert('Failed to update status: ' + (resData.error || ''));
         }
     } catch (e) {
         console.error(e);

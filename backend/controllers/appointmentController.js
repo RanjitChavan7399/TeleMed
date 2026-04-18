@@ -6,18 +6,18 @@ const TABLE_NAME = "Appointments";
 
 exports.createAppointment = async (req, res) => {
     try {
-        const { doctor, date, time, reason } = req.body;
+        const { doctorId, patientId, date, time, reason } = req.body;
         
-        if (!doctor || !date || !time) {
-             return res.status(400).json({ error: "doctorId, date, and time are required." });
+        if (!doctorId || !date || !time) {
+             return res.status(400).json({ success: false, error: "doctorId, date, and time are required." });
         }
 
         const appointmentId = Date.now().toString();
 
         const item = {
-            doctorId: doctor.toString(),
+            doctorId: doctorId.toString(),
             appointmentId: appointmentId,
-            patientId: req.user._id.toString(),
+            patientId: patientId ? patientId.toString() : req.user._id.toString(),
             date: date,
             time: time,
             reason: reason || "",
@@ -29,10 +29,10 @@ exports.createAppointment = async (req, res) => {
             Item: item
         }));
 
-        res.status(201).json(item);
+        res.status(201).json({ success: true, data: item });
     } catch (error) {
         console.error("APPOINTMENT CREATE ERROR:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
     }
 };
 
@@ -45,10 +45,10 @@ exports.getDoctorAppointments = async (req, res) => {
             ExpressionAttributeValues: { ":did": doctorId }
         }));
 
-        res.status(200).json(data.Items || []);
+        res.status(200).json({ success: true, data: data.Items || [] });
     } catch (error) {
         console.error("APPOINTMENT GET DOC ERROR:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
     }
 };
 
@@ -66,9 +66,10 @@ exports.getAppointments = async (req, res) => {
             .populate('doctor', 'name email')
             .sort({ createdAt: -1 });
 
-        res.status(200).json(appointments);
+        res.status(200).json({ success: true, data: appointments });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("GET APPOINTMENTS ERROR:", error);
+        res.status(500).json({ success: false, error: error.message });
     }
 };
 
@@ -78,17 +79,18 @@ exports.updateStatus = async (req, res) => {
         const appointmentId = req.params.id;
 
         const appointment = await Appointment.findById(appointmentId);
-        if (!appointment) return res.status(404).json({ error: "Appointment not found" });
+        if (!appointment) return res.status(404).json({ success: false, error: "Appointment not found" });
 
         if (req.user.role === 'patient' && status !== 'Cancelled') {
-             return res.status(403).json({ error: "Patients can only cancel appointments." });
+             return res.status(403).json({ success: false, error: "Patients can only cancel appointments." });
         }
 
         appointment.status = status;
         await appointment.save();
 
-        res.status(200).json(appointment);
+        res.status(200).json({ success: true, data: appointment });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("UPDATE APPOINTMENT STATUS ERROR:", error);
+        res.status(500).json({ success: false, error: error.message });
     }
 };

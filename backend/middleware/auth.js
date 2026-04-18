@@ -3,19 +3,24 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
     try {
-        const token = req.header('Authorization').replace('Bearer ', '');
+        const authHeader = req.header('Authorization');
+        if (!authHeader) {
+            return res.status(401).json({ success: false, error: 'Please authenticate.' });
+        }
+        
+        const token = authHeader.replace('Bearer ', '');
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key');
         const user = await User.findOne({ _id: decoded._id });
 
         if (!user) {
-            throw new Error();
+            return res.status(401).json({ success: false, error: 'Please authenticate.' });
         }
 
         req.token = token;
         req.user = user;
         next();
     } catch (e) {
-        res.status(401).send({ error: 'Please authenticate.' });
+        res.status(401).json({ success: false, error: 'Please authenticate.' });
     }
 };
 
@@ -26,7 +31,7 @@ const authorize = (roles = []) => {
 
     return (req, res, next) => {
         if (roles.length && !roles.includes(req.user.role)) {
-            return res.status(403).send({ error: 'Unauthorized access.' });
+            return res.status(403).json({ success: false, error: 'Unauthorized access.' });
         }
         next();
     };
