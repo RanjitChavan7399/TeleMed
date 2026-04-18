@@ -125,7 +125,6 @@
                             <select id="regRole">
                                 <option value="patient">Patient</option>
                                 <option value="doctor">Doctor</option>
-                                <option value="admin">Administrator</option>
                             </select>
                         </div>
                     </div>
@@ -310,6 +309,7 @@
                         <ul class="sidebar-menu">
                             <li><a href="#" id="adminTabCases" class="active" onclick="switchAdminTab('cases'); return false;"><i class="fa-solid fa-chart-pie"></i> System Overview</a></li>
                             <li><a href="#" id="adminTabAppts" onclick="switchAdminTab('appts'); return false;"><i class="fa-solid fa-calendar-days"></i> All Appointments</a></li>
+                            <li><a href="#" id="adminTabDocs" onclick="switchAdminTab('docs'); return false;"><i class="fa-solid fa-user-doctor"></i> Manage Doctors</a></li>
                             <li><a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
                         </ul>
                     </div>
@@ -359,6 +359,23 @@
                                         <th>Date</th>
                                         <th>Time</th>
                                         <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="adminDocsView" class="card" style="display: none;">
+                        <h3><i class="fa-solid fa-user-doctor" style="color: var(--primary); margin-right: 0.5rem;"></i> Manage Doctors</h3>
+                        <div class="table-container">
+                            <table id="adminDocsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>

@@ -340,17 +340,23 @@ function switchDoctorTab(tab) {
 function switchAdminTab(tab) {
     document.getElementById('adminTabCases').classList.remove('active');
     document.getElementById('adminTabAppts').classList.remove('active');
+    document.getElementById('adminTabDocs').classList.remove('active');
     document.getElementById('adminCasesView').style.display = 'none';
     document.getElementById('adminApptsView').style.display = 'none';
+    document.getElementById('adminDocsView').style.display = 'none';
 
     if (tab === 'cases') {
         document.getElementById('adminTabCases').classList.add('active');
         document.getElementById('adminCasesView').style.display = 'block';
         loadAdminDashboard();
-    } else {
+    } else if (tab === 'appts') {
         document.getElementById('adminTabAppts').classList.add('active');
         document.getElementById('adminApptsView').style.display = 'block';
         loadAdminAppointments();
+    } else if (tab === 'docs') {
+        document.getElementById('adminTabDocs').classList.add('active');
+        document.getElementById('adminDocsView').style.display = 'block';
+        loadAdminDoctors();
     }
 }
 
@@ -489,6 +495,49 @@ async function loadAdminAppointments() {
             </tr>
         `).join('');
     } catch (e) { console.error(e); }
+}
+
+async function loadAdminDoctors() {
+    try {
+        const res = await fetch(`${API_URL}/auth/all-doctors`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const doctors = await res.json();
+        const tbody = document.querySelector('#adminDocsTable tbody');
+        if (doctors.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 1rem;">No doctors registered.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = doctors.map(d => `
+            <tr>
+                <td style="font-weight: 500;">Dr. ${d.name}</td>
+                <td>${d.email}</td>
+                <td><span class="badge badge-${d.isApproved ? 'success' : 'warning'}">${d.isApproved ? 'Approved' : 'Pending'}</span></td>
+                <td>
+                    ${!d.isApproved ? `<button class="btn btn-success" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="approveDoctor('${d._id}')"><i class="fa-solid fa-check"></i> Approve</button>` : '<span style="color:var(--text-muted);font-size:0.8rem;">-</span>'}
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function approveDoctor(id) {
+    if (!confirm('Approve this doctor? They will gain access to login and receive consultations.')) return;
+    try {
+        const res = await fetch(`${API_URL}/auth/approve-doctor/${id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            loadAdminDoctors();
+        } else {
+            alert('Failed to approve doctor');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error approving doctor');
+    }
 }
 
 async function updateApptStatus(id, status) {
