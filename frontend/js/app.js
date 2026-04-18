@@ -393,7 +393,7 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
     };
 
     try {
-        const res = await fetch(`${API_URL}/appointments`, {
+        const res = await fetch(`${API_URL}/appointments/book`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -443,7 +443,7 @@ async function loadPatientAppointments() {
 
 async function loadDoctorAppointments() {
     try {
-        const res = await fetch(`${API_URL}/appointments`, {
+        const res = await fetch(`${API_URL}/appointments/doctor/${currentUser._id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) return;
@@ -461,10 +461,10 @@ async function loadDoctorAppointments() {
                 <td>${a.reason}</td>
                 <td><span class="badge badge-${a.status === 'Completed' ? 'success' : (a.status === 'Cancelled' ? 'danger' : 'warning')}">${a.status}</span></td>
                 <td>
-                    ${a.status === 'Scheduled' ? `
+                    ${a.status === 'booked' ? `
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn btn-success" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a._id}', 'Completed')"><i class="fa-solid fa-check"></i> Complete</button>
-                        <button class="btn btn-danger" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a._id}', 'Cancelled')"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                        <button class="btn btn-success" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a.appointmentId || a._id}', 'Completed')"><i class="fa-solid fa-check"></i> Complete</button>
+                        <button class="btn btn-danger" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a.appointmentId || a._id}', 'Cancelled')"><i class="fa-solid fa-xmark"></i> Cancel</button>
                     </div>
                     ` : '-'}
                 </td>
