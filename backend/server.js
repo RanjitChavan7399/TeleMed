@@ -42,12 +42,8 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/users', userRoutes);
 
 // Connect to MongoDB
-const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/telemedicine';
-mongoose.connect(mongoURI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => {
-        console.error('Could not connect to MongoDB', err);
-    });
+const connectDB = require("./config/db");
+connectDB();
 
 app.listen(PORT,"0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
