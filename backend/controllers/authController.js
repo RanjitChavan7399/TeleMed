@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, role, adminSecret } = req.body;
+        const { name, email, password, role } = req.body;
 
         if (!name || !email || !password) {
             return res.status(400).json({ success: false, error: "All fields are required" });
@@ -12,12 +12,6 @@ exports.register = async (req, res) => {
         let assignedRole = role || 'patient';
         if (!['patient', 'doctor', 'admin'].includes(assignedRole)) {
             return res.status(400).json({ success: false, error: "Invalid role specified" });
-        }
-
-        if (assignedRole === 'admin') {
-            if (adminSecret !== process.env.ADMIN_SECRET) {
-                return res.status(403).json({ success: false, error: "Unauthorized to create admin" });
-            }
         }
 
         const existingUser = await User.findOne({ email });

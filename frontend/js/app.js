@@ -80,19 +80,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
 });
 
-if (document.getElementById('regRole')) {
-    document.getElementById('regRole').addEventListener('change', (e) => {
-        const adminSecretGroup = document.getElementById('adminSecretGroup');
-        if (adminSecretGroup) {
-            if (e.target.value === 'admin') {
-                adminSecretGroup.style.display = 'block';
-            } else {
-                adminSecretGroup.style.display = 'none';
-            }
-        }
-    });
-}
-
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
@@ -102,12 +89,8 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
     const role = document.getElementById('regRole').value;
-    const adminSecret = document.getElementById('regAdminSecret') ? document.getElementById('regAdminSecret').value : undefined;
 
     const payload = { name, email, password, role };
-    if (role === 'admin') {
-        payload.adminSecret = adminSecret;
-    }
 
     try {
         const res = await fetch(`${API_URL}/auth/register`, {
@@ -508,10 +491,10 @@ async function loadDoctorAppointments() {
                 <td>${a.reason}</td>
                 <td><span class="badge badge-${a.status === 'Completed' ? 'success' : (a.status === 'Cancelled' ? 'danger' : 'warning')}">${a.status}</span></td>
                 <td>
-                    ${a.status === 'booked' ? `
+                    ${a.status === 'Scheduled' ? `
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn btn-success" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a.appointmentId || a._id}', 'Completed')"><i class="fa-solid fa-check"></i> Complete</button>
-                        <button class="btn btn-danger" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a.appointmentId || a._id}', 'Cancelled')"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                        <button class="btn btn-success" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a._id}', 'Completed')"><i class="fa-solid fa-check"></i> Complete</button>
+                        <button class="btn btn-danger" style="padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="updateApptStatus('${a._id}', 'Cancelled')"><i class="fa-solid fa-xmark"></i> Cancel</button>
                     </div>
                     ` : '-'}
                 </td>

@@ -43,8 +43,12 @@ app.use('/api/users', userRoutes);
 
 // Connect to MongoDB
 const connectDB = require("./config/db");
-connectDB();
 
-app.listen(PORT,"0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
+// Start server only after database is connected
+connectDB().then(() => {
+    app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}).catch(err => {
+    console.error("Failed to connect to database:", err);
 });

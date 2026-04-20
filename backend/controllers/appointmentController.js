@@ -1,35 +1,25 @@
-const dynamoDb = require('../config/dynamo');
-const { PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
-const Appointment = require('../models/Appointment'); // Keep for old methods if not migrated yet
-
-const TABLE_NAME = "Appointments";
+const Appointment = require('../models/Appointment');
 
 exports.createAppointment = async (req, res) => {
     try {
-        const { doctorId, patientId, date, time, reason } = req.body;
+        const { doctorId, date, time, reason } = req.body;
         
         if (!doctorId || !date || !time) {
              return res.status(400).json({ success: false, error: "doctorId, date, and time are required." });
         }
 
-        const appointmentId = Date.now().toString();
-
-        const item = {
-            doctorId: doctorId.toString(),
-            appointmentId: appointmentId,
-            patientId: patientId ? patientId.toString() : req.user._id.toString(),
+        const appointment = new Appointment({
+            doctor: doctorId,
+            patient: req.user._id,
             date: date,
             time: time,
             reason: reason || "",
-            status: "booked"
-        };
+            status: "Scheduled"
+        });
 
-        await dynamoDb.send(new PutCommand({
-            TableName: TABLE_NAME,
-            Item: item
-        }));
+        await appointment.save();
 
-        res.status(201).json({ success: true, data: item });
+        res.status(201).json({ success: true, data: appointment });
     } catch (error) {
         console.error("APPOINTMENT CREATE ERROR:", error);
         res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
@@ -39,20 +29,17 @@ exports.createAppointment = async (req, res) => {
 exports.getDoctorAppointments = async (req, res) => {
     try {
         const { doctorId } = req.params;
-        const data = await dynamoDb.send(new QueryCommand({
-            TableName: TABLE_NAME,
-            KeyConditionExpression: "doctorId = :did",
-            ExpressionAttributeValues: { ":did": doctorId }
-        }));
+        const appointments = await Appointment.find({ doctor: doctorId })
+            .populate('patient', 'name email')
+            .sort({ date: 1, time: 1 });
 
-        res.status(200).json({ success: true, data: data.Items || [] });
+        res.status(200).json({ success: true, data: appointments });
     } catch (error) {
         console.error("APPOINTMENT GET DOC ERROR:", error);
         res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
     }
 };
 
-// Kept untouched as per minimal changes instruction if required to not break patients
 exports.getAppointments = async (req, res) => {
     try {
         let filter = {};
