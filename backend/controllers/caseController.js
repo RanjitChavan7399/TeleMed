@@ -26,7 +26,7 @@ exports.getCases = async (req, res) => {
         if (req.user.role === 'patient') {
             query.patient = req.user._id;
         } else if (req.user.role === 'doctor') {
-            query.doctor = req.user._id;
+            query = { $or: [{ doctor: req.user._id }, { status: 'Pending' }] };
         }
         
         const cases = await Case.find(query).populate('patient', 'name email').populate('doctor', 'name email');
