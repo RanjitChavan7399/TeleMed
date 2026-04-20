@@ -1,7 +1,8 @@
 // Detect if running locally or on EC2
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
-const API_URL = isLocal ? 'http://localhost:5000/api' : 'http://13.60.240.36:5000/api';
-
+const API_URL = isLocal 
+  ? 'http://localhost:5000/api' 
+  : '/api';
 let currentUser = JSON.parse(localStorage.getItem('user'));
 let token = localStorage.getItem('token');
 function showSection(sectionId) {
@@ -79,6 +80,19 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
 });
 
+if (document.getElementById('regRole')) {
+    document.getElementById('regRole').addEventListener('change', (e) => {
+        const adminSecretGroup = document.getElementById('adminSecretGroup');
+        if (adminSecretGroup) {
+            if (e.target.value === 'admin') {
+                adminSecretGroup.style.display = 'block';
+            } else {
+                adminSecretGroup.style.display = 'none';
+            }
+        }
+    });
+}
+
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
@@ -88,12 +102,18 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
     const role = document.getElementById('regRole').value;
+    const adminSecret = document.getElementById('regAdminSecret') ? document.getElementById('regAdminSecret').value : undefined;
+
+    const payload = { name, email, password, role };
+    if (role === 'admin') {
+        payload.adminSecret = adminSecret;
+    }
 
     try {
         const res = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password, role })
+            body: JSON.stringify(payload)
         });
         const resData = await res.json();
         if (resData.success) {

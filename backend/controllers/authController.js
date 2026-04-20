@@ -3,10 +3,21 @@ const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, adminSecret } = req.body;
 
         if (!name || !email || !password) {
             return res.status(400).json({ success: false, error: "All fields are required" });
+        }
+
+        let assignedRole = role || 'patient';
+        if (!['patient', 'doctor', 'admin'].includes(assignedRole)) {
+            return res.status(400).json({ success: false, error: "Invalid role specified" });
+        }
+
+        if (assignedRole === 'admin') {
+            if (adminSecret !== process.env.ADMIN_SECRET) {
+                return res.status(403).json({ success: false, error: "Unauthorized to create admin" });
+            }
         }
 
         const existingUser = await User.findOne({ email });
@@ -14,7 +25,6 @@ exports.register = async (req, res) => {
             return res.status(400).json({ success: false, error: "Email already registered" });
         }
 
-        const assignedRole = role === 'doctor' ? 'doctor' : 'patient';
         const isApproved = assignedRole === 'doctor' ? false : true;
         
         const user = new User({ name, email, password, role: assignedRole, isApproved });
@@ -25,7 +35,14 @@ exports.register = async (req, res) => {
             process.env.JWT_SECRET || "secret_key"
         );
 
-        res.status(201).json({ success: true, data: { user, token } });
+        const returnUser = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
+
+        res.status(201).json({ success: true, data: { user: returnUser, token } });
     } catch (error) {
         console.error("REGISTER ERROR:", error);
         res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
@@ -44,7 +61,15 @@ exports.login = async (req, res) => {
         }
 
         const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET || 'secret_key');
-        res.status(200).json({ success: true, data: { user, token } });
+        
+        const returnUser = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
+
+        res.status(200).json({ success: true, data: { user: returnUser, token } });
     } catch (error) {
         console.error("LOGIN ERROR:", error);
         res.status(500).json({ success: false, error: "Internal Server Error" });

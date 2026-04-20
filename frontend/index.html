@@ -125,7 +125,15 @@
                             <select id="regRole">
                                 <option value="patient">Patient</option>
                                 <option value="doctor">Doctor</option>
+                                <option value="admin">Admin</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="form-group hidden" id="adminSecretGroup" style="display: none;">
+                        <label for="regAdminSecret">Admin Secret Key</label>
+                        <div class="input-container">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <input type="password" id="regAdminSecret" placeholder="">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center;">
