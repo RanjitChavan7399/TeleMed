@@ -1,0 +1,18 @@
+services:
+  backend:
+    image: ranjit7399/telemed-backend:latest
+    container_name: telemed-backend-compose
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+
+  frontend:
+    image: ranjit7399/telemed-frontend:latest
+    container_name: telemed-frontend-compose
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
