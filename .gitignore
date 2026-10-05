@@ -7,3 +7,4 @@ ssh_github.pub
 .terraform/
 terraform.tfstate
 terraform.tfstate.*
+terraform/telemed-key.pem
