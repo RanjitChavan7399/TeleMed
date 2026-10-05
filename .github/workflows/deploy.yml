@@ -66,3 +66,28 @@ jobs:
             docker compose pull
             docker compose up -d
             docker image prune -f
+      # =========================
+      # KUBERNETES DEPLOYMENT
+      # =========================
+      - name: Deploy to Kubernetes
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.K8S_HOST }}
+          username: ubuntu
+          key: ${{ secrets.K8S_SSH_KEY }}
+          script: |
+            kubectl set image deployment/telemed-backend \
+              telemed-backend=ranjit7399/telemed-backend:latest \
+              -n telemed
+
+            kubectl set image deployment/telemed-frontend \
+              telemed-frontend=ranjit7399/telemed-frontend:latest \
+              -n telemed
+
+            kubectl rollout status deployment/telemed-backend \
+              -n telemed --timeout=180s
+
+            kubectl rollout status deployment/telemed-frontend \
+              -n telemed --timeout=180s
+
+            kubectl get pods -n telemed
